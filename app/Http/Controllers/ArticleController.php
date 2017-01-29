@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Core\Criteria\Article\CreatedAtBetweenCriteria;
+use Core\Criteria\Article\TitleCriteria;
 use Core\Repositories\ArticleRepository;
 use Core\Services\ArticleService;
 use Illuminate\Http\Request;
@@ -33,10 +35,22 @@ class ArticleController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
+        $title = $request->get('title');
+        $createdAtFrom = $request->get('created_at_from');
+        $createdAtTo = $request->get('created_at_to');
+
+        if ($title) {
+            $this->articleRepository->pushCriteria(new TitleCriteria($title));
+        }
+        if ($createdAtFrom && $createdAtTo) {
+            $this->articleRepository->pushCriteria(new CreatedAtBetweenCriteria($createdAtFrom, $createdAtTo));
+        }
+
         $articles = $this->articleRepository->paginate();
 
         return view('article.index')->with(compact('articles'));
